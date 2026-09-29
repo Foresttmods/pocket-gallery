@@ -1,0 +1,83 @@
+plugins {
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    version = neoforge_version
+
+    runs {
+        client {
+            client()
+            gameDirectory = project.file('run')
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+sourceSets {
+    test {
+        java.srcDir rootProject.file('common/src/test/java')
+        resources.srcDir rootProject.file('common/src/test/resources')
+        if (personal) {
+            java.srcDir rootProject.file('common/src/personalTest/java')
+            resources.srcDir rootProject.file('common/src/personalTest/resources')
+        }
+    }
+}
+
+dependencies {
+    // Immersive Paintings is required at runtime; we compile against its released NeoForge jar.
+    compileOnly files(rootProject.file("libs/${ip_neoforge_file}"))
+
+    if (personal) {
+        // Personal edition: pure-Java video decoder (BSD) for Sakugabooru clips, bundled inside the jar.
+        jarJar(implementation('org.jcodec:jcodec')) {
+            version {
+                strictly '[0.2.5,0.3)'
+                prefer '0.2.5'
+            }
+        }
+    }
+
+    // Unit tests cover the loader-independent logic (they run once, here).
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'com.google.code.gson:gson:2.11.0'
+}
+
+test {
+    useJUnitPlatform()
+    // AWT/ImageIO in tests must never try to open a display.
+    systemProperty 'java.awt.headless', 'true'
+    // optional: -PtestVideo=<mp4> converts a real clip in VideoToGifTest (personal edition)
+    systemProperty 'pocketgallery.testVideo', findProperty('testVideo') ?: ''
+    // optional: -PliveTests=true also runs BooruLiveTest (personal edition), which talks to the real sites
+    systemProperty 'pocketgallery.live', findProperty('liveTests') ?: ''
+    testLogging {
+        events 'failed'
+        exceptionFormat = 'full'
+    }
+    // Test listener instead of the afterSuite {} closure (deprecated in Gradle 9, removed in 10).
+    addTestListener(new TestListener() {
+        void beforeSuite(TestDescriptor desc) {}
+        void afterSuite(TestDescriptor desc, TestResult result) {
+            if (!desc.parent) println "Tests: ${result.testCount} run, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped"
+        }
+        void beforeTest(TestDescriptor desc) {}
+        void afterTest(TestDescriptor desc, TestResult result) {}
+    })
+}
+
+processResources {
+    def props = modProps
+    inputs.properties(props)
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand(props)
+    }
+}

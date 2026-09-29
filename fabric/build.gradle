@@ -1,0 +1,59 @@
+plugins {
+    id 'net.fabricmc.fabric-loom'
+}
+
+repositories {
+    // runtime-only mods for the dev client (./gradlew :fabric:runClient)
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter {
+            includeGroup 'maven.modrinth'
+        }
+    }
+}
+
+loom {
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+    runs {
+        client {
+            runDir 'run'
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    // Immersive Paintings is required at runtime; we compile against its released Fabric jar.
+    compileOnly files(rootProject.file("libs/${ip_fabric_file}"))
+
+    if (personal) {
+        // Personal edition: pure-Java video decoder (BSD) for Sakugabooru clips, bundled inside the jar.
+        include(implementation('org.jcodec:jcodec:0.2.5'))
+    }
+
+    // Dev client only (not bundled): Immersive Paintings and its dependencies.
+    localRuntime files(rootProject.file("libs/${ip_fabric_file}"))
+    // Modrinth version ids: fzzy_config 0.7.7+26.2 (Fabric), Fabric Language Kotlin 1.14.1 (needed by fzzy_config)
+    localRuntime 'maven.modrinth:fzzy-config:tZ4vc79R'
+    localRuntime 'maven.modrinth:fabric-language-kotlin:eRRZzGMc'
+}
+
+processResources {
+    def props = modProps
+    inputs.properties(props)
+    filesMatching('fabric.mod.json') {
+        expand(props)
+    }
+}

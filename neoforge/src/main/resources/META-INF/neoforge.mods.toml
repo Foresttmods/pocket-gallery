@@ -1,0 +1,40 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "GPL-3.0-only"
+issueTrackerURL = "${mod_issues}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+authors = "${mod_authors}"
+displayURL = "${mod_homepage}"
+logoFile = "assets/pocket_gallery/icon.png"
+description = '''${mod_description}'''
+
+# Optional hooks into Immersive Paintings: the register-response packet (error messages + painting id) and the
+# painting screen's search (Source filter on the "Yours" page). The mixin config is marked non-required, so a
+# changed IP version only loses these hooks.
+[[mixins]]
+config = "${mod_id}.mixins.json"
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neoforge_version_range}"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${neoforge_minecraft_range}"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "immersive_paintings"
+type = "required"
+versionRange = "[${immersive_paintings_version},)"
+ordering = "AFTER"
+side = "CLIENT"

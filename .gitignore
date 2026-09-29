@@ -1,0 +1,20 @@
+# Build output and tooling
+build/
+.gradle/
+.tools/
+.idea/
+.vscode/
+run/
+*.iml
+*.log
+
+# Immersive Paintings jars are compiled against but not redistributed - see README "Building"
+libs/
+
+# Local-only material (never part of the public source)
+common/src/personal/
+common/src/personalTest/
+neoforge/src/main/README-personal.md
+Build all.bat
+branding/
+scripts/
